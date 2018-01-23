@@ -1,5 +1,4 @@
 package com.bsit.ftp.sftp;
-
 import java.util.Map;
 import java.util.Properties;
 

@@ -1,4 +1,4 @@
-package com.bsit.ftp.sftp.type1;
+package com.bsit.ftp.sftp;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,9 +8,14 @@ import java.io.OutputStream;
 import java.util.Properties;
 import java.util.Vector;
 
+import javax.transaction.SystemException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpATTRS;
 import com.jcraft.jsch.SftpException;
@@ -19,10 +24,10 @@ public class MySFTP {
 	
 	Session session = null;
     Channel channel = null;
-    ChannelSftp sftp = null;
 
 	public ChannelSftp connect(String host, int port, String username,
 			String password) {
+		ChannelSftp sftp = null;
 		try {
 			JSch jsch = new JSch();
 			jsch.getSession(username, host, port);
@@ -40,46 +45,15 @@ public class MySFTP {
 			sftp = (ChannelSftp) channel;
 			System.out.println("Connected to " + host + ".");
 		} catch (Exception e) {
-
+			e.printStackTrace();
 		}
 		return sftp;
 	}
-	
-	public void closeChannel() throws Exception {
-        if (channel != null) {
-            channel.disconnect();
-        }
-        if (session != null) {
-            session.disconnect();
-        }
-    }
-	
-	/** 
-     * 进入指定的目录并设置为当前目录 
-     * @param sftpPath    "/dcds/abc/" ,将abc目录设置成当前目录 
-     * @throws Exception 
-     */  
-    public void cd (String sftpPath) throws SftpException {  
-    	sftp.cd(sftpPath);  
-    } 
-    
-    /** 
-     * 得到当前用户当前工作目录地址 
-     * @return 返回当前工作目录地址 
-     * @throws SftpException  
-     *  
-     */  
-    public String pwd () throws SftpException {  
-        return sftp.pwd();  
-    }
 
 	public void upload(String directory, String uploadFile, ChannelSftp sftp) {
 		try {
-			// 
-			if(!isDirExist(directory, sftp)){
-				sftp.mkdir(directory);
-			}
-			cd(directory);
+			// sftp.mkdir(directory);
+			sftp.cd(directory);
 			File file = new File(uploadFile);
 			InputStream is = new FileInputStream(file);
 			sftp.put(is, file.getName());
@@ -92,7 +66,7 @@ public class MySFTP {
 	public void download(String directory, String downloadFile,
 			String saveFile, ChannelSftp sftp) {
 		try {
-			cd(directory);
+			sftp.cd(directory);
 			File file = new File(saveFile);
 			if (!file.exists()) {
 				file.createNewFile();
@@ -108,7 +82,7 @@ public class MySFTP {
 
 	public void delete(String directory, String deleteFile, ChannelSftp sftp) {
 		try {
-			cd(directory);
+			sftp.cd(directory);
 			sftp.rm(deleteFile);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -125,10 +99,12 @@ public class MySFTP {
 		return new Vector();
 	}
 
-	public void createDir(String createpath, ChannelSftp sftp){
+	@Autowired
+	public void createDir(String createpath, ChannelSftp sftp)
+			throws SystemException {
 		try {
 			if (isDirExist(createpath, sftp)) {
-				cd(createpath);
+				sftp.cd(createpath);
 			}
 			String pathArry[] = createpath.split("/");
 			StringBuffer filePath = new StringBuffer("/");
@@ -138,69 +114,19 @@ public class MySFTP {
 				}
 				filePath.append(path + "/");
 				if (isDirExist(filePath.toString(), sftp)) {
-					cd(filePath.toString());
+					sftp.cd(filePath.toString());
 				} else {
 					// 建立目录
 					sftp.mkdir(filePath.toString());
 					// 进入并设置为当前目录
-					cd(filePath.toString());
+					sftp.cd(filePath.toString());
 				}
 			}
-			cd(createpath);
+			sftp.cd(createpath);
 		} catch (SftpException e) {
-			e.printStackTrace();
+			throw new SystemException("创建路径错误：" + createpath);
 		}
 	}
-	
-	/** 
-     * 获取远程文件的流文件 
-     * @param sftpFilePath 
-     * @return 
-     * @throws SftpException 
-     */  
-    public InputStream getFile (String sftpFilePath) throws SftpException {  
-        if (isFileExist(sftpFilePath)) {  
-            return sftp.get(sftpFilePath);  
-        }  
-        return null;  
-    }  
-    
-    /** 
-     * 判断远程文件是否存在 
-     * @param srcSftpFilePath 
-     * @return 
-     * @throws SftpException 
-     */  
-    public boolean isFileExist (String srcSftpFilePath) throws SftpException {  
-        boolean isExitFlag = false;  
-        // 文件大于等于0则存在文件  
-        if (getFileSize(srcSftpFilePath) >= 0) {  
-            isExitFlag = true;  
-        }  
-        return isExitFlag;  
-    }
-    
-    
-    /** 得到远程文件大小 
-     * @see   返回文件大小 
-     * @param srcSftpFilePath 
-     * @return 返回文件大小，如返回-2 文件不存在，-1文件读取异常 
-     * @throws SftpException 
-     */  
-    public long getFileSize (String srcSftpFilePath) throws SftpException {  
-        long filesize = 0;//文件大于等于0则存在  
-        try {  
-            SftpATTRS sftpATTRS = sftp.lstat(srcSftpFilePath);  
-            filesize = sftpATTRS.getSize();  
-        } catch (Exception e) {  
-            filesize = -1;//获取文件大小异常  
-            if (e.getMessage().toLowerCase().equals("no such file")) {  
-                filesize = -2;//文件不存在  
-            }  
-        }  
-        return filesize;  
-    } 
-  
 
 	/**
 	 * 判断目录是否存在
@@ -220,10 +146,26 @@ public class MySFTP {
 	public void disconnect(ChannelSftp sftp) {
         if(sftp != null){
             if(sftp.isConnected()){
+                try {
+					if (null != sftp.getSession()) { 
+					    sftp.getSession().disconnect(); 
+					}
+				} catch (JSchException e) {
+					e.printStackTrace();
+				} 
                 sftp.disconnect();
             }else if(sftp.isClosed()){
                 System.out.println("sftp is closed already");
             }
+        }
+    }
+	
+	public void closeChannel() throws Exception {
+        if (channel != null) {
+            channel.disconnect();
+        }
+        if (session != null) {
+            session.disconnect();
         }
     }
 
@@ -243,7 +185,7 @@ public class MySFTP {
 		sf.download(directory, downloadFile, saveFile, sftp);
 		sf.delete(directory, deleteFile, sftp);
 		try {
-			sf.cd(directory);
+			sftp.cd(directory);
 
 			System.out.println("finished");
 		} catch (Exception e) {
