@@ -1,4 +1,4 @@
-package com.bsit.http;
+package com.bsit.netWork.http;
 
 import java.io.*;
 import java.net.HttpURLConnection;

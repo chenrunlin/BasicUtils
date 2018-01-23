@@ -1,4 +1,4 @@
-package com.bsit.http;
+package com.bsit.netWork.http;
 
 import java.io.BufferedReader;
 import java.io.InputStream;

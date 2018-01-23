@@ -7,10 +7,10 @@ import java.io.InputStreamReader;
 
 import javax.mail.MessagingException;
 
+import com.bsit.netWork.http.HttpUtils;
 import com.bsit.netWork.mail163.MailUtil;
 import com.bsit.utils.DateUtil;
 import com.bsit.utils.FileUtil;
-import com.bsit.utils.HttpUtil;
 
 public class Ping58 {
 
@@ -24,7 +24,7 @@ public class Ping58 {
 			date = DateUtil.getCurrentDateTime();
 			fileName = "e:\\logs/58.log/" + date + "_58_log.txt";
 			try {
-				backStr = HttpUtil.sendPost("http://58.56.141.202:8088/pos/", "");
+				backStr = HttpUtils.sendPost("http://58.56.141.202:8088/pos/", "");
 				if(backStr.contains("Hello World!")){
 					try {
 						System.out.println(DateUtil.getCurrentDateTime() + " : 服务器正常");

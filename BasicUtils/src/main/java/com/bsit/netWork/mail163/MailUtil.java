@@ -55,7 +55,7 @@ public class MailUtil {
 				props.getProperty("mail.user"));
 		message.setFrom(form);
 		// 设置收件人
-		InternetAddress to = new InternetAddress("289395845@qq.com");
+		InternetAddress to = new InternetAddress("569062838@qq.com");
 		message.setRecipient(RecipientType.TO, to);
 		// 设置抄送
 //		InternetAddress cc = new InternetAddress("18864830605@163.com");
