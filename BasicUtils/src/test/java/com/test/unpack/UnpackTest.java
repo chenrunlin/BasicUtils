@@ -1,0 +1,21 @@
+package com.test.unpack;
+
+import com.bsit.unpack.DataResolve;
+
+
+public class UnpackTest {
+
+	public static void main(String[] args) {
+		//tmpStr：文件内容
+		String tmpStr = "1000021048300201801020116313539700000000000062257500000000000320181211619000000                                                  FFFF6225758220471477016410 000100     0000006415600  00  062018010200000000000000000000000000000000" + 
+				"1000021048300201801020210114464500000000000062270000000000000320181229550000000                                                  F6227003525620041588016410 000100     0000006415600  00  062018010200000000000000000000000000000000" + 
+				"1000021048302018010200002174116200000000000062257500000000000320181200500000000                                                  FFFF6225758220471477016410 000100     0000006415600  00  062018010297399801100316070000000000000000";
+		try {
+			FileCfData data = (FileCfData)DataResolve.resolve(tmpStr.getBytes(), new FileCfData());
+			System.out.println(data.toString());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+}
